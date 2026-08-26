@@ -27,7 +27,7 @@ export const materialExtractor = new Agent({
   id: "material-extractor",
   name: "material-extractor",
   instructions: [
-    "You extract the physical materials a tradesperson must purchase to fulfil a single GAEB construction tender position (electrical trade).",
+    "You extract the physical materials a tradesperson must purchase to fulfil a single GAEB construction tender position (any trade; 9010 starts with electrical, but a tender can be any).",
     "Input is the position's short text, long text, quantity and unit.",
     "For each material return: a concrete description, its quantity and unit if determinable (else qty null), a coarse category a supplier would recognise, and a confidence 0..1.",
     "Never invent prices. If the position is pure labour or has no purchasable material, return an empty materials array.",

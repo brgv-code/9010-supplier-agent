@@ -16,7 +16,8 @@
     "dev": "vite",
     "build": "vite build",
     "parse": "tsx src/cli.ts",
-    "ingest": "tsx scripts/ingest.ts"
+    "ingest": "tsx scripts/ingest.ts",
+    "extract:demo": "tsx scripts/extract.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.47",
