@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "parse": "tsx src/cli.ts"
+    "parse": "tsx src/cli.ts",
+    "ingest": "tsx scripts/ingest.ts"
   },
   "dependencies": {
     "convex": "^1.45.0",
