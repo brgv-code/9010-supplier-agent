@@ -4,6 +4,11 @@ Dated decisions as the feature is built. Newest first.
 
 ---
 
+## 2026-08-26 - switch to pnpm; drop stray build artifacts
+- Repo now uses **pnpm**, not npm (my earlier npm default was a wrong assumption; pnpm is the preference). Removed `package-lock.json`, committed `pnpm-lock.yaml`, CI runs pnpm, README/CLAUDE updated.
+- A bare `tsc` run had emitted `.js` next to the `.ts` sources (Biome then linted them, 86 false errors). Deleted them and set `"noEmit": true` in `tsconfig.json` so it cannot recur; typecheck still runs via the `--noEmit` flag.
+- lint / test / typecheck green under pnpm.
+
 ## 2026-08-26 - M0 slice 2: Convex ingest (schema + upload + parse)
 Wired the parser into Convex.
 - `convex/schema.ts`: `tenders` + `positions` tables (positions in their own table, not an array field; `tenantId` from day one). Indexes `by_tenant` and `by_tenant_and_sha256`.

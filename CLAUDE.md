@@ -12,12 +12,13 @@ TypeScript (only) · TanStack/React · **Convex** (backend: data, durable workfl
 actions, file storage, realtime) · **Mastra** (AI agents + evals). Node 22.
 
 ## Commands
+Package manager: **pnpm** (not npm). Node 22.
 ```bash
-npm test         # vitest
-npm run typecheck
-npm run lint      # biome (lint + format check)
-npm run format    # biome, write
-npm run parse -- <file.x83>   # eyeball a parse
+pnpm test         # vitest
+pnpm run typecheck
+pnpm run lint      # biome (lint + format check)
+pnpm run format    # biome, write
+pnpm run parse -- <file.x83>   # eyeball a parse
 ```
 
 ## Conventions

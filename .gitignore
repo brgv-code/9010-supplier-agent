@@ -7,6 +7,6 @@ dist/
 .convex/
 convex/_generated/
 .claude/
-pnpm-lock.yaml
+package-lock.json
 .agents/
 skills-lock.json

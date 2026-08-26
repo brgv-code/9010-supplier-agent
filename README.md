@@ -16,10 +16,10 @@ Feature build for the 9010 Founding Engineer exercise. Design docs live in the k
 
 ## Run it
 ```bash
-npm install
-npm test                                # parser unit tests
-npm run typecheck
-npm run parse -- test/fixtures/sample.x83   # eyeball a parse
+pnpm install
+pnpm test                                # parser unit tests
+pnpm run typecheck
+pnpm run parse -- test/fixtures/sample.x83   # eyeball a parse
 ```
 Example output:
 ```
