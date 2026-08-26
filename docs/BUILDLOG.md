@@ -4,6 +4,13 @@ Dated decisions as the feature is built. Newest first.
 
 ---
 
+## 2026-08-26 - M0 slice 3: React UI (Vite)
+- Vite + React 19 app: upload an `.x83`, a reactive tenders list, and a reactive positions table. Uses Convex hooks (`useQuery` / `useMutation` / `useAction`) under `ConvexProvider`, so the tables update live as data lands.
+- Chose Vite + React over TanStack Start for now (simpler, and React skills transfer); can move to TanStack Start later.
+- Committed `convex/_generated/` (previously ignored): the frontend imports its types, so it must be present for typecheck, CI, and fresh clones. It regenerates on `convex dev`.
+- Verified: `pnpm lint`, `pnpm typecheck`, and `pnpm build` (vite) all pass.
+- Run: `npx convex dev` (it adds `VITE_CONVEX_URL` to `.env.local` when it sees Vite), then `pnpm dev` in another shell.
+
 ## 2026-08-26 - switch to pnpm; drop stray build artifacts
 - Repo now uses **pnpm**, not npm (my earlier npm default was a wrong assumption; pnpm is the preference). Removed `package-lock.json`, committed `pnpm-lock.yaml`, CI runs pnpm, README/CLAUDE updated.
 - A bare `tsc` run had emitted `.js` next to the `.ts` sources (Biome then linted them, 86 false errors). Deleted them and set `"noEmit": true` in `tsconfig.json` so it cannot recur; typecheck still runs via the `--noEmit` flag.

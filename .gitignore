@@ -5,7 +5,6 @@ dist/
 *.log
 .DS_Store
 .convex/
-convex/_generated/
 .claude/
 package-lock.json
 .agents/

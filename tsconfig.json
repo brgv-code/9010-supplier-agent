@@ -8,8 +8,9 @@
     "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "jsx": "react-jsx",
     "types": ["node"],
-    "lib": ["ES2022"]
+    "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
   "include": ["src", "test"]
 }
