@@ -16,6 +16,7 @@
     "parse": "tsx src/cli.ts"
   },
   "dependencies": {
+    "convex": "^1.45.0",
     "fast-xml-parser": "^4.4.1"
   },
   "devDependencies": {
