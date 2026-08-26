@@ -7,14 +7,20 @@ export default function App() {
   const tenders = useQuery(api.ingest.listTenders); // undefined while loading
   const generateUploadUrl = useMutation(api.ingest.generateUploadUrl);
   const ingest = useAction(api.ingestActions.ingestUploadedX83);
+  const extract = useAction(api.extractActions.extractMaterialsForTender);
 
   const [selected, setSelected] = useState<Id<"tenders"> | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [filter, setFilter] = useState("");
+  const [extracting, setExtracting] = useState(false);
 
   const positions = useQuery(api.ingest.listPositions, selected ? { tenderId: selected } : "skip");
+  const materials = useQuery(
+    api.extract.listMaterialReqs,
+    selected ? { tenderId: selected } : "skip",
+  );
   const selectedTender = tenders?.find((t) => t._id === selected) ?? null;
 
   async function ingestFile(file: File) {
@@ -35,6 +41,19 @@ export default function App() {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function onExtract() {
+    if (!selected) return;
+    setExtracting(true);
+    setError(null);
+    try {
+      await extract({ tenderId: selected });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setExtracting(false);
     }
   }
 
@@ -64,7 +83,7 @@ export default function App() {
     <main className="wrap">
       <header>
         <h1>Tender viewer</h1>
-        <p className="sub">Upload a GAEB X83 and inspect its positions. 9010 supplier-agent, M0.</p>
+        <p className="sub">Upload a GAEB X83, then extract material needs. 9010 supplier-agent.</p>
       </header>
 
       <div
@@ -118,13 +137,18 @@ export default function App() {
                     {tbdCount > 0 ? ` · ${tbdCount} qty TBD` : ""}
                   </span>
                 </div>
-                <input
-                  className="filter"
-                  type="search"
-                  placeholder="Filter by OZ or text"
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                />
+                <div className="actions">
+                  <input
+                    className="filter"
+                    type="search"
+                    placeholder="Filter by OZ or text"
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
+                  />
+                  <button type="button" className="btn" onClick={onExtract} disabled={extracting}>
+                    {extracting ? "Extracting..." : "Extract materials (AI)"}
+                  </button>
+                </div>
               </div>
 
               {positions === undefined ? (
@@ -155,6 +179,39 @@ export default function App() {
                     ))}
                   </tbody>
                 </table>
+              )}
+
+              {materials && materials.length > 0 && (
+                <div className="materials">
+                  <h3>Extracted materials ({materials.length})</h3>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Material</th>
+                        <th>Category</th>
+                        <th className="num">Qty</th>
+                        <th>Unit</th>
+                        <th className="num">Confidence</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {materials.map((m) => (
+                        <tr key={m._id}>
+                          <td>{m.description}</td>
+                          <td>{m.category}</td>
+                          <td className="num">{m.qty === null ? "-" : m.qty}</td>
+                          <td>{m.unit}</td>
+                          <td className={`num ${m.confidence < 0.6 ? "low" : ""}`}>
+                            {Math.round(m.confidence * 100)}%
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="muted">
+                    Rows under 60% confidence (highlighted) are the ones a human would review.
+                  </p>
+                </div>
               )}
             </>
           ) : (

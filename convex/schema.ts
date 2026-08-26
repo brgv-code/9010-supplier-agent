@@ -28,4 +28,17 @@ export default defineSchema({
     kind: v.string(),
     sourceId: v.string(),
   }).index("by_tender", ["tenderId"]),
+
+  // M1: material needs extracted from positions by the Mastra agent (model-driven step).
+  materialReqs: defineTable({
+    tenderId: v.id("tenders"),
+    positionId: v.id("positions"),
+    description: v.string(),
+    qty: v.union(v.number(), v.null()),
+    unit: v.string(),
+    category: v.string(),
+    confidence: v.number(),
+  })
+    .index("by_tender", ["tenderId"])
+    .index("by_position", ["positionId"]),
 });

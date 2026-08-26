@@ -8,6 +8,8 @@
  * @module
  */
 
+import type * as extract from "../extract.js";
+import type * as extractActions from "../extractActions.js";
 import type * as ingest from "../ingest.js";
 import type * as ingestActions from "../ingestActions.js";
 
@@ -18,6 +20,8 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  extract: typeof extract;
+  extractActions: typeof extractActions;
   ingest: typeof ingest;
   ingestActions: typeof ingestActions;
 }>;

@@ -19,10 +19,13 @@
     "ingest": "tsx scripts/ingest.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^4.0.47",
+    "@mastra/core": "^1.62.0",
     "convex": "^1.45.0",
     "fast-xml-parser": "^4.4.1",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

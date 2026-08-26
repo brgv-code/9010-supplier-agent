@@ -4,6 +4,20 @@ Dated decisions as the feature is built. Newest first.
 
 ---
 
+## 2026-08-26 - M1: Mastra material-extractor (the model-driven step) + eval + UI
+- `src/ai/materialExtractor.ts`: a Mastra Agent (OpenAI `gpt-4o-mini`, swappable via `OPENAI_MODEL`) that turns one GAEB position into material needs via a Zod `structuredOutput` schema (description, qty, unit, category, confidence). No Convex imports, so it is unit/eval-testable and callable from a Convex action.
+- Schema: added `materialReqs` table (`by_tender`, `by_position`).
+- `convex/extract.ts`: `positionsForTender` (internalQuery), `replaceMaterialReqs` (internalMutation, idempotent clear+insert, sets tender status `extracted`), `listMaterialReqs` (query).
+- `convex/extractActions.ts` (`"use node"`): `extractMaterialsForTender` runs the agent over each position and stores the results.
+- Eval: `src/ai/materialExtractor.eval.test.ts`, gated on `OPENAI_API_KEY` (skipped in CI). Checks a cable position extracts a plausible material with valid confidence, and a labour position yields ~none.
+- UI: an "Extract materials (AI)" button and a materials table with confidence; rows under 60% are highlighted as the human-review set (the model/rule/human split made visible).
+- Verified: lint, typecheck, test (8 pass, 2 eval skipped), vite build. Confirmed the server-only Mastra code is not in the client bundle.
+- Gotcha: Mastra 1.62 Agent config requires an `id` field (caught by typecheck).
+
+**To run:** set the key in the Convex deployment env: `npx convex env set OPENAI_API_KEY sk-...`, then click Extract. Local eval: `OPENAI_API_KEY=sk-... pnpm test`.
+
+**Left for later:** parallelise per-position calls, wire the confidence threshold to a real review queue, and move to Mastra eval scorers instead of the ad-hoc test.
+
 ## 2026-08-26 - fix: VITE_CONVEX_URL for the browser
 The UI threw "Set VITE_CONVEX_URL". `convex dev` writes `CONVEX_URL` to `.env.local`, but Vite only exposes `VITE_`-prefixed vars to browser code, so the client could not read it. Fix: copy the value into `VITE_CONVEX_URL` in `.env.local` (per-machine, gitignored). Note the deployment is in the EU region (`eu-west-1`), so the URL cannot be derived from the deployment name alone; read it from `CONVEX_URL`. `convex dev` should also add `VITE_CONVEX_URL` on future runs now that Vite is present.
 

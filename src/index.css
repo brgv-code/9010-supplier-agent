@@ -180,3 +180,34 @@ tr:last-child td {
   color: var(--accent);
   vertical-align: middle;
 }
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.btn {
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--accent);
+  border-radius: 7px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.materials {
+  margin-top: 1.5rem;
+}
+.materials h3 {
+  font-size: 0.95rem;
+  margin: 0 0 0.5rem;
+}
+td.low {
+  color: #c0392b;
+  font-weight: 600;
+}
