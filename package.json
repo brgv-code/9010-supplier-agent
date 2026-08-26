@@ -17,7 +17,8 @@
     "build": "vite build",
     "parse": "tsx src/cli.ts",
     "ingest": "tsx scripts/ingest.ts",
-    "extract:demo": "tsx scripts/extract.ts"
+    "extract:demo": "tsx scripts/extract.ts",
+    "playground": "mastra dev"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.47",
@@ -34,6 +35,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "@vitejs/plugin-react": "^6.1.0",
+    "mastra": "^1.26.1",
     "tsx": "^4.16.0",
     "typescript": "^5.5.4",
     "vite": "^8.2.2",
