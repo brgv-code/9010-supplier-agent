@@ -5,3 +5,8 @@ dist/
 *.log
 .DS_Store
 .convex/
+convex/_generated/
+.claude/
+pnpm-lock.yaml
+.agents/
+skills-lock.json
