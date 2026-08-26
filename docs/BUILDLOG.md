@@ -4,6 +4,9 @@ Dated decisions as the feature is built. Newest first.
 
 ---
 
+## 2026-08-26 - fix: VITE_CONVEX_URL for the browser
+The UI threw "Set VITE_CONVEX_URL". `convex dev` writes `CONVEX_URL` to `.env.local`, but Vite only exposes `VITE_`-prefixed vars to browser code, so the client could not read it. Fix: copy the value into `VITE_CONVEX_URL` in `.env.local` (per-machine, gitignored). Note the deployment is in the EU region (`eu-west-1`), so the URL cannot be derived from the deployment name alone; read it from `CONVEX_URL`. `convex dev` should also add `VITE_CONVEX_URL` on future runs now that Vite is present.
+
 ## 2026-08-26 - M0 slice 3: React UI (Vite)
 - Vite + React 19 app: upload an `.x83`, a reactive tenders list, and a reactive positions table. Uses Convex hooks (`useQuery` / `useMutation` / `useAction`) under `ConvexProvider`, so the tables update live as data lands.
 - Chose Vite + React over TanStack Start for now (simpler, and React skills transfer); can move to TanStack Start later.
