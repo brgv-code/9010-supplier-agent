@@ -1,0 +1,28 @@
+{
+  "name": "9010-supplier-agent",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Supplier-outreach agent — feature build for the 9010 Founding Engineer exercise",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "parse": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.4.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/node": "^22.5.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
+}
