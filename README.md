@@ -18,6 +18,8 @@ Upload, parse, and view work in prod. The "Extract materials (AI)" step is inten
 | Convex schema + upload/store | ✅ done |
 | React UI (Vite) | ✅ done |
 | Mastra material-extractor + eval (M1) | ✅ done |
+| Deploy (Cloudflare Pages + Convex prod) | ✅ live |
+| Rate-limit gate on the AI extract endpoint | ⏳ next (before AI is on in prod) |
 | Supplier match + approval + send (M2/M3) | ⏳ |
 | Inbound webhook + quote parse (M4) | ⏳ |
 
