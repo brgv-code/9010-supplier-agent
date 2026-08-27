@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GAEB xmlns="http://www.gaeb.de/GAEB_DA_XML/DA83/3.2">
+  <GAEBInfo>
+    <Version>3.2</Version>
+    <Date>2026-08-27</Date>
+    <ProgSystem>9010 sample</ProgSystem>
+  </GAEBInfo>
+  <PrjInfo>
+    <NamePrj>REWE Markt Neubau Berlin-Lichtenberg - Elektroinstallation</NamePrj>
+    <Cur>€</Cur>
+    <CurLbl>Euro</CurLbl>
+  </PrjInfo>
+  <Award>
+    <DP>83</DP>
+    <AwardInfo>
+      <Cur>€</Cur>
+    </AwardInfo>
+    <BoQ>
+      <BoQInfo>
+        <Name>Elektroinstallation</Name>
+      </BoQInfo>
+      <BoQBody>
+        <BoQCtgy ID="ID_ctgy_01" RNoPart="01">
+          <LblTx><span>Kabel und Leitungen</span></LblTx>
+          <BoQBody>
+            <Itemlist>
+              <Item ID="ID_el_0101" RNoPart="001">
+                <Qty>450</Qty>
+                <QU>m</QU>
+                <Description><CompleteText>
+                  <OutlineText><OutlTxt><TextOutlTxt><span>NYM-J 3x1,5 mm2 Mantelleitung</span></TextOutlTxt></OutlTxt></OutlineText>
+                  <DetailTxt><Text><p><span>Mantelleitung NYM-J 3x1,5 mm2 liefern und auf Putz verlegen, inkl. Befestigungsmaterial.</span></p></Text></DetailTxt>
+                </CompleteText></Description>
+              </Item>
+              <Item ID="ID_el_0102" RNoPart="002">
+                <Qty>220</Qty>
+                <QU>m</QU>
+                <Description><CompleteText>
+                  <OutlineText><OutlTxt><TextOutlTxt><span>NYM-J 5x2,5 mm2 Mantelleitung</span></TextOutlTxt></OutlTxt></OutlineText>
+                  <DetailTxt><Text><p><span>Mantelleitung NYM-J 5x2,5 mm2 fuer Herd- und Drehstromanschluss, auf Putz verlegen.</span></p></Text></DetailTxt>
+                </CompleteText></Description>
+              </Item>
+              <Item ID="ID_el_0103" RNoPart="003">
+                <Qty>120</Qty>
+                <QU>m</QU>
+                <Description><CompleteText>
+                  <OutlineText><OutlTxt><TextOutlTxt><span>Kabelkanal 60x40 mm</span></TextOutlTxt></OutlTxt></OutlineText>
+                  <DetailTxt><Text><p><span>Installationskanal 60x40 mm aus PVC, inkl. Deckel und Montagematerial, an Wand montieren.</span></p></Text></DetailTxt>
+                </CompleteText></Description>
+              </Item>
+            </Itemlist>
+          </BoQBody>
+        </BoQCtgy>
+        <BoQCtgy ID="ID_ctgy_02" RNoPart="02">
+          <LblTx><span>Schalter und Steckdosen</span></LblTx>
+          <BoQBody>
+            <Itemlist>
+              <Item ID="ID_el_0201" RNoPart="001">
+                <Qty>85</Qty>
+                <QU>Stueck</QU>
+                <Description><CompleteText>
+                  <OutlineText><OutlTxt><TextOutlTxt><span>Schuko-Steckdose UP</span></TextOutlTxt></OutlTxt></OutlineText>
+                  <DetailTxt><Text><p><span>Schutzkontakt-Steckdose Unterputz, inkl. Rahmen, liefern und anschliessen.</span></p></Text></DetailTxt>
+                </CompleteText></Description>
+              </Item>
+              <Item ID="ID_el_0202" RNoPart="002">
+                <Qty>40</Qty>
+                <QU>Stueck</QU>
+                <Description><CompleteText>
+                  <OutlineText><OutlTxt><TextOutlTxt><span>Lichtschalter UP</span></TextOutlTxt></OutlTxt></OutlineText>
+                  <DetailTxt><Text><p><span>Wippschalter Unterputz (Aus/Wechsel), inkl. Rahmen, liefern und anschliessen.</span></p></Text></DetailTxt>
+                </CompleteText></Description>
+              </Item>
+              <Item ID="ID_el_0203" RNoPart="003">
+                <Qty>12</Qty>
+                <QU>Stueck</QU>
+                <Description><CompleteText>
+                  <OutlineText><OutlTxt><TextOutlTxt><span>FI/LS-Schalter kombiniert</span></TextOutlTxt></OutlTxt></OutlineText>
+                  <DetailTxt><Text><p><span>Kombinierter Fehlerstrom-/Leitungsschutzschalter 16A, 30mA, in Verteilung einbauen.</span></p></Text></DetailTxt>
+                </CompleteText></Description>
+              </Item>
+            </Itemlist>
+          </BoQBody>
+        </BoQCtgy>
+        <BoQCtgy ID="ID_ctgy_03" RNoPart="03">
+          <LblTx><span>Verteilung und Beleuchtung</span></LblTx>
+          <BoQBody>
+            <Itemlist>
+              <Item ID="ID_el_0301" RNoPart="001">
+                <Qty>1</Qty>
+                <QU>Stueck</QU>
+                <Description><CompleteText>
+                  <OutlineText><OutlTxt><TextOutlTxt><span>Zaehlerschrank 3-reihig</span></TextOutlTxt></OutlTxt></OutlineText>
+                  <DetailTxt><Text><p><span>Zaehler- und Verteilerschrank 3-reihig, Aufputz, inkl. Verdrahtung und Beschriftung.</span></p></Text></DetailTxt>
+                </CompleteText></Description>
+              </Item>
+              <Item ID="ID_el_0302" RNoPart="002">
+                <Qty>60</Qty>
+                <QU>Stueck</QU>
+                <Description><CompleteText>
+                  <OutlineText><OutlTxt><TextOutlTxt><span>LED-Einbauleuchte 24W</span></TextOutlTxt></OutlTxt></OutlineText>
+                  <DetailTxt><Text><p><span>LED-Deckeneinbauleuchte 24W, 4000K, inkl. Trafo, liefern und montieren.</span></p></Text></DetailTxt>
+                </CompleteText></Description>
+              </Item>
+            </Itemlist>
+          </BoQBody>
+        </BoQCtgy>
+      </BoQBody>
+    </BoQ>
+  </Award>
+</GAEB>
