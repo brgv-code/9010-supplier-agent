@@ -5,12 +5,19 @@ Feature build for the 9010 Founding Engineer exercise. Design docs live in the k
 
 > Interview exercise, not 9010's real code. Stack targets theirs: TypeScript · TanStack/React · Convex · Mastra.
 
+## Live
+- **App:** https://9010-supplier-agent.pages.dev (Cloudflare Pages)
+- **Backend:** Convex prod `https://dapper-snake-560.convex.cloud` · [dashboard](https://dashboard.convex.dev/t/trash-67c31/9010-supplier-agent/dapper-snake-560)
+
+Upload, parse, and view work in prod. The "Extract materials (AI)" step is intentionally disabled in prod until `OPENAI_API_KEY` is set on the Convex prod deployment (avoids a public endpoint spending OpenAI credits). To enable: `npx convex env set OPENAI_API_KEY sk-... --prod`, ideally behind a rate limit or auth first.
+
 ## Status
 | Slice | State |
 |-------|-------|
-| **GAEB X83 parser** (M0, spike risk #1) | ✅ done, tested (8/8), typechecked |
-| Convex schema + upload/store | ⏳ next (needs a Convex deployment) |
-| Mastra material-extractor + evals (M1) | ⏳ |
+| **GAEB X83 parser** (M0) | ✅ done, tested (8/8) |
+| Convex schema + upload/store | ✅ done |
+| React UI (Vite) | ✅ done |
+| Mastra material-extractor + eval (M1) | ✅ done |
 | Supplier match + approval + send (M2/M3) | ⏳ |
 | Inbound webhook + quote parse (M4) | ⏳ |
 
