@@ -4,6 +4,16 @@ Dated decisions as the feature is built. Newest first.
 
 ---
 
+## 2026-08-28 - PDF tender ingest (unstructured -> LLM)
+GAEB XML is structured, so that parser stays a deterministic rule. A PDF bill of quantities is unstructured, so PDF ingest is a two-step model path: PDF -> text -> positions.
+- `src/pdf/extractPdfText.ts` (unpdf) extracts text; tested against a generated PDF fixture (`test/fixtures/electrical-tender.pdf`).
+- `src/ai/positionExtractor.ts`: a Mastra agent (OpenAI) turns the text into `{ projectName, currency, positions[] }` with a per-position confidence (Zod structured output).
+- `convex/ingestPdfActions.ts` (`"use node"`) routes PDF: extract text -> LLM -> reuse `insertParsed`. The client sniffs `.pdf`/`application/pdf` and calls this instead of the X83 action.
+- Schema: added `tenders.source` ("gaeb"|"pdf") and `positions.confidence`, both **optional** so pre-existing prod rows still validate.
+- UI: accepts `.pdf`, shows the source, and a per-position confidence column (sub-60% highlighted) for AI-extracted positions.
+- Verified: text extraction test + lint/typecheck/build all green. The LLM step needs `OPENAI_API_KEY` server-side; run pending key.
+- Prod: requires `convex deploy` + a valid key + (recommended) the rate-limit gate before these public endpoints spend on OpenAI.
+
 ## 2026-08-26 - M1: Mastra material-extractor (the model-driven step) + eval + UI
 - `src/ai/materialExtractor.ts`: a Mastra Agent (OpenAI `gpt-4o-mini`, swappable via `OPENAI_MODEL`) that turns one GAEB position into material needs via a Zod `structuredOutput` schema (description, qty, unit, category, confidence). No Convex imports, so it is unit/eval-testable and callable from a Convex action.
 - Schema: added `materialReqs` table (`by_tender`, `by_position`).
