@@ -6,6 +6,7 @@ import { v } from "convex/values";
 export default defineSchema({
   tenders: defineTable({
     tenantId: v.string(),
+    source: v.optional(v.string()), // "gaeb" | "pdf" (optional so pre-existing rows validate)
     projectName: v.string(),
     phase: v.string(),
     gaebVersion: v.string(),
@@ -27,6 +28,7 @@ export default defineSchema({
     unit: v.string(),
     kind: v.string(),
     sourceId: v.string(),
+    confidence: v.optional(v.number()), // set for PDF (LLM-extracted) positions only
   }).index("by_tender", ["tenderId"]),
 
   // M1: material needs extracted from positions by the Mastra agent (model-driven step).

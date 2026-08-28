@@ -12,6 +12,7 @@ import type * as extract from "../extract.js";
 import type * as extractActions from "../extractActions.js";
 import type * as ingest from "../ingest.js";
 import type * as ingestActions from "../ingestActions.js";
+import type * as ingestPdfActions from "../ingestPdfActions.js";
 
 import type {
   ApiFromModules,
@@ -24,6 +25,7 @@ declare const fullApi: ApiFromModules<{
   extractActions: typeof extractActions;
   ingest: typeof ingest;
   ingestActions: typeof ingestActions;
+  ingestPdfActions: typeof ingestPdfActions;
 }>;
 
 /**

@@ -17,6 +17,7 @@ export const ingestUploadedX83 = action({
 
     const tenderId: Id<"tenders"> = await ctx.runMutation(internal.ingest.insertParsed, {
       fileId: args.fileId,
+      source: "gaeb",
       projectName: parsed.projectName,
       phase: parsed.phase,
       gaebVersion: parsed.gaebVersion,

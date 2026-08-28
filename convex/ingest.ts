@@ -13,6 +13,8 @@ const positionValidator = v.object({
   unit: v.string(),
   kind: v.string(),
   sourceId: v.string(),
+  // present only for PDF (LLM-extracted) positions; absent for deterministic GAEB parsing
+  confidence: v.optional(v.number()),
 });
 
 // Client asks for a signed URL, POSTs the raw .x83 to it, then calls the ingest action.
@@ -26,6 +28,7 @@ export const generateUploadUrl = mutation({
 export const insertParsed = internalMutation({
   args: {
     fileId: v.id("_storage"),
+    source: v.string(), // "gaeb" | "pdf"
     projectName: v.string(),
     phase: v.string(),
     gaebVersion: v.string(),
@@ -46,6 +49,7 @@ export const insertParsed = internalMutation({
 
     const tenderId = await ctx.db.insert("tenders", {
       tenantId: DEV_TENANT,
+      source: args.source,
       projectName: args.projectName,
       phase: args.phase,
       gaebVersion: args.gaebVersion,

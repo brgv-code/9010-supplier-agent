@@ -1,0 +1,47 @@
+"use node";
+
+import { v } from "convex/values";
+import { extractPositionsFromText } from "../src/ai/positionExtractor.js";
+import { extractPdfText } from "../src/pdf/extractPdfText.js";
+import { internal } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
+import { action } from "./_generated/server";
+
+// PDF tender ingest: PDF -> text (deterministic) -> positions (LLM) -> store.
+// Node runtime (unpdf + Mastra). Needs OPENAI_API_KEY on the deployment.
+export const ingestUploadedPdf = action({
+  args: { fileId: v.id("_storage") },
+  handler: async (ctx, args): Promise<{ tenderId: Id<"tenders">; positionCount: number }> => {
+    const blob = await ctx.storage.get(args.fileId);
+    if (!blob) throw new Error("uploaded file not found in storage");
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+
+    const text = await extractPdfText(bytes);
+    if (text.trim().length === 0) {
+      throw new Error("no extractable text in PDF (is it a scan? OCR not supported yet)");
+    }
+
+    const extracted = await extractPositionsFromText(text);
+    const positions = extracted.positions.map((p) => ({
+      oz: p.oz,
+      shortText: p.shortText,
+      longText: p.longText,
+      qty: p.qty,
+      unit: p.unit,
+      kind: "normal",
+      sourceId: "",
+      confidence: p.confidence,
+    }));
+
+    const tenderId: Id<"tenders"> = await ctx.runMutation(internal.ingest.insertParsed, {
+      fileId: args.fileId,
+      source: "pdf",
+      projectName: extracted.projectName || "(untitled PDF tender)",
+      phase: "",
+      gaebVersion: "",
+      currency: extracted.currency || "",
+      positions,
+    });
+    return { tenderId, positionCount: positions.length };
+  },
+});

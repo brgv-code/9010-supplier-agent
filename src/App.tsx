@@ -7,6 +7,7 @@ export default function App() {
   const tenders = useQuery(api.ingest.listTenders); // undefined while loading
   const generateUploadUrl = useMutation(api.ingest.generateUploadUrl);
   const ingest = useAction(api.ingestActions.ingestUploadedX83);
+  const ingestPdf = useAction(api.ingestPdfActions.ingestUploadedPdf);
   const extract = useAction(api.extractActions.extractMaterialsForTender);
 
   const [selected, setSelected] = useState<Id<"tenders"> | null>(null);
@@ -35,7 +36,10 @@ export default function App() {
       });
       if (!res.ok) throw new Error(`upload failed (${res.status})`);
       const { storageId } = (await res.json()) as { storageId: string };
-      const result = await ingest({ fileId: storageId as Id<"_storage"> });
+      const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+      const result = isPdf
+        ? await ingestPdf({ fileId: storageId as Id<"_storage"> })
+        : await ingest({ fileId: storageId as Id<"_storage"> });
       setSelected(result.tenderId);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -83,7 +87,9 @@ export default function App() {
     <main className="wrap">
       <header>
         <h1>Tender viewer</h1>
-        <p className="sub">Upload a GAEB X83, then extract material needs. 9010 supplier-agent.</p>
+        <p className="sub">
+          Upload a GAEB X83 (parsed) or a PDF tender (AI-extracted), then extract material needs.
+        </p>
       </header>
 
       <div
@@ -95,9 +101,16 @@ export default function App() {
         onDragLeave={() => setDragOver(false)}
         onDrop={onDrop}
       >
-        <input id="file" type="file" accept=".x83,.xml" onChange={onInput} disabled={busy} hidden />
+        <input
+          id="file"
+          type="file"
+          accept=".x83,.xml,.pdf"
+          onChange={onInput}
+          disabled={busy}
+          hidden
+        />
         <label htmlFor="file">
-          {busy ? "Parsing..." : "Drop an .x83 here, or click to choose"}
+          {busy ? "Parsing..." : "Drop an .x83 or .pdf here, or click to choose"}
         </label>
       </div>
       {error && <p className="error">{error}</p>}
@@ -117,7 +130,7 @@ export default function App() {
                 >
                   <strong>{t.projectName || "(untitled)"}</strong>
                   <span className="meta">
-                    X{t.phase} · {t.positionCount} positions · {t.currency}
+                    {t.source === "pdf" ? "PDF" : `GAEB X${t.phase}`} · {t.positionCount} positions
                   </span>
                 </button>
               </li>
@@ -132,8 +145,10 @@ export default function App() {
                 <div>
                   <h2>{selectedTender.projectName || "(untitled)"}</h2>
                   <span className="meta">
-                    GAEB {selectedTender.gaebVersion} · X{selectedTender.phase} ·{" "}
-                    {selectedTender.currency} · {selectedTender.positionCount} positions
+                    {selectedTender.source === "pdf"
+                      ? "PDF (AI-extracted)"
+                      : `GAEB ${selectedTender.gaebVersion} · X${selectedTender.phase}`}{" "}
+                    · {selectedTender.currency || "?"} · {selectedTender.positionCount} positions
                     {tbdCount > 0 ? ` · ${tbdCount} qty TBD` : ""}
                   </span>
                 </div>
@@ -163,6 +178,7 @@ export default function App() {
                       <th>Description</th>
                       <th className="num">Qty</th>
                       <th>Unit</th>
+                      <th className="num">Conf</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -175,6 +191,11 @@ export default function App() {
                         </td>
                         <td className="num">{p.qty === null ? "-" : p.qty}</td>
                         <td>{p.unit}</td>
+                        <td
+                          className={`num ${p.confidence !== undefined && p.confidence < 0.6 ? "low" : ""}`}
+                        >
+                          {p.confidence === undefined ? "-" : `${Math.round(p.confidence * 100)}%`}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
