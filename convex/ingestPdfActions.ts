@@ -14,6 +14,7 @@ export const ingestUploadedPdf = action({
   handler: async (ctx, args): Promise<{ tenderId: Id<"tenders">; positionCount: number }> => {
     const blob = await ctx.storage.get(args.fileId);
     if (!blob) throw new Error("uploaded file not found in storage");
+    if (blob.size > 10 * 1024 * 1024) throw new Error("PDF too large (max 10MB)");
     const bytes = new Uint8Array(await blob.arrayBuffer());
 
     const text = await extractPdfText(bytes);
@@ -21,6 +22,8 @@ export const ingestUploadedPdf = action({
       throw new Error("no extractable text in PDF (is it a scan? OCR not supported yet)");
     }
 
+    // Gate OpenAI spend on this public endpoint (throws if the hourly budget is spent).
+    await ctx.runMutation(internal.rateLimit.consumeAiBudget, {});
     const extracted = await extractPositionsFromText(text);
     const positions = extracted.positions.map((p) => ({
       oz: p.oz,

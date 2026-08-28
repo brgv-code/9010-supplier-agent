@@ -13,6 +13,7 @@ import type * as extractActions from "../extractActions.js";
 import type * as ingest from "../ingest.js";
 import type * as ingestActions from "../ingestActions.js";
 import type * as ingestPdfActions from "../ingestPdfActions.js";
+import type * as rateLimit from "../rateLimit.js";
 
 import type {
   ApiFromModules,
@@ -26,6 +27,7 @@ declare const fullApi: ApiFromModules<{
   ingest: typeof ingest;
   ingestActions: typeof ingestActions;
   ingestPdfActions: typeof ingestPdfActions;
+  rateLimit: typeof rateLimit;
 }>;
 
 /**
@@ -54,4 +56,6 @@ export declare const internal: FilterApi<
   FunctionReference<any, "internal">
 >;
 
-export declare const components: {};
+export declare const components: {
+  rateLimiter: import("@convex-dev/rate-limiter/_generated/component.js").ComponentApi<"rateLimiter">;
+};

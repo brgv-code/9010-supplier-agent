@@ -4,6 +4,12 @@ Dated decisions as the feature is built. Newest first.
 
 ---
 
+## 2026-08-28 - P0: rate-limit gate on the public AI endpoints
+The public `extractMaterialsForTender` and `ingestUploadedPdf` spend OpenAI on every call, so with no auth they need a cap.
+- Mounted `@convex-dev/rate-limiter`; a global `aiRequest` budget (40/hour) via `consumeAiBudget`, enforced in both AI actions before any OpenAI call (throws when spent).
+- Also: cap positions per extraction (60) and a 10MB PDF size guard.
+- No auth yet, so the cap is a single "global" key; key it per user/tenant once auth lands. Makes the (rotated) key safe to run on the public site. Auth + per-tenant quotas remain the bigger P0 item.
+
 ## 2026-08-28 - PDF tender ingest (unstructured -> LLM)
 GAEB XML is structured, so that parser stays a deterministic rule. A PDF bill of quantities is unstructured, so PDF ingest is a two-step model path: PDF -> text -> positions.
 - `src/pdf/extractPdfText.ts` (unpdf) extracts text; tested against a generated PDF fixture (`test/fixtures/electrical-tender.pdf`).

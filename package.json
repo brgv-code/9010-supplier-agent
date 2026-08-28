@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.47",
+    "@convex-dev/rate-limiter": "^0.3.2",
     "@mastra/core": "^1.62.0",
     "convex": "^1.45.0",
     "fast-xml-parser": "^4.4.1",

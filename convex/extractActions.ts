@@ -21,9 +21,15 @@ type ReqRow = {
 export const extractMaterialsForTender = action({
   args: { tenderId: v.id("tenders") },
   handler: async (ctx, args): Promise<{ positions: number; materials: number }> => {
-    const positions = await ctx.runQuery(internal.extract.positionsForTender, {
+    // Gate OpenAI spend on this public endpoint (throws if the hourly budget is spent).
+    await ctx.runMutation(internal.rateLimit.consumeAiBudget, {});
+
+    const allPositions = await ctx.runQuery(internal.extract.positionsForTender, {
       tenderId: args.tenderId,
     });
+    // Cap positions per request so one call can't spend unboundedly (no auth yet).
+    const MAX_POSITIONS = 60;
+    const positions = allPositions.slice(0, MAX_POSITIONS);
 
     const reqs: ReqRow[] = [];
     for (const p of positions) {
