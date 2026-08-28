@@ -27,6 +27,7 @@
     "fast-xml-parser": "^4.4.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "unpdf": "^1.8.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -36,6 +37,7 @@
     "@types/react-dom": "^19.2.5",
     "@vitejs/plugin-react": "^6.1.0",
     "mastra": "^1.26.1",
+    "pdf-lib": "^1.17.1",
     "tsx": "^4.16.0",
     "typescript": "^5.5.4",
     "vite": "^8.2.2",
