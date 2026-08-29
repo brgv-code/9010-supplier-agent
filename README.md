@@ -1,56 +1,83 @@
 # 9010 Supplier-Outreach Agent
 
-Feature build for the 9010 Founding Engineer exercise. Design docs live in the knowledge-base
-(`job-search/assets/9010-founding-engineer/build/`); this repo is the code.
+Given a construction tender (GAEB **X83** or PDF), the app extracts the materials to buy,
+matches them to suppliers, and — after a human approves — sends RFQ emails and parses the
+replies into quotes, until the bid is **ready to calculate**.
 
-> Interview exercise, not 9010's real code. Stack targets theirs: TypeScript · TanStack/React · Convex · Mastra.
+> Interview build for the 9010 Founding Engineer role. Not 9010's real code. Stack targets
+> theirs: **TypeScript · TanStack (Router) / React · Convex · Mastra**. Design docs +
+> decision log: `docs/BUILDLOG.md` (and the author's knowledge-base).
+
+## The pipeline (and the model / rule / human split)
+9010's JD asks to "decide what should be model-driven, rule-based, or confirmed by a human."
+Every step is deliberately one of those:
+
+```
+upload → parse → extract → match → approve → send → reply → parse quotes → ready to calculate
+         rule     model     rule    human    rule   (ext)    model          rule
+```
+
+- **rule** (deterministic): GAEB XML parsing, supplier matching, RFQ rendering, completeness.
+- **model** (LLM via Mastra): material extraction from free text, PDF→positions, quote parsing.
+  Every model output carries a **confidence**; anything low is flagged for human review.
+- **human**: curating the supplier list and approving before anything sends.
 
 ## Live
 - **App:** https://9010-supplier-agent.pages.dev (Cloudflare Pages)
 - **Backend:** Convex prod `https://dapper-snake-560.convex.cloud` · [dashboard](https://dashboard.convex.dev/t/trash-67c31/9010-supplier-agent/dapper-snake-560)
 
-Upload, parse, and view work in prod. The "Extract materials (AI)" step is intentionally disabled in prod until `OPENAI_API_KEY` is set on the Convex prod deployment (avoids a public endpoint spending OpenAI credits). To enable: `npx convex env set OPENAI_API_KEY sk-... --prod`, ideally behind a rate limit or auth first.
+## Done
+| Area | State |
+|------|-------|
+| **Auth + per-user isolation** (Convex Auth, email/password) | ✅ |
+| **M0 ingest** — GAEB X83 parser (rule) + PDF tender (model), dedupe on file hash | ✅ tested |
+| **M1 extract** — Mastra material-extractor, structured output + confidence + eval | ✅ |
+| **M2 match** — supplier catalog, rule-based matching, per-supplier curated approval gate | ✅ tested |
+| **M3 send** — RFQ rendering + tracking + durable scheduled reminders (simulated send) | ✅ tested |
+| **M4 replies** — quote parsing from supplier replies → "ready to calculate" | ✅ |
+| **Parser hardening** — multi-Award, comma decimals, phase check, fail-loud | ✅ tested |
+| **Rate-limit gate** on the public AI endpoints (`@convex-dev/rate-limiter`) | ✅ |
+| **Production UI** — TanStack Router pages, app shell, animated upload, loading states | ✅ |
+| **Deployed** — Cloudflare Pages + Convex prod, CI (lint/typecheck/test) | ✅ |
 
-## Status
-| Slice | State |
-|-------|-------|
-| **GAEB X83 parser** (M0) | ✅ done, tested (8/8) |
-| Convex schema + upload/store | ✅ done |
-| React UI (Vite) | ✅ done |
-| Mastra material-extractor + eval (M1) | ✅ done |
-| Deploy (Cloudflare Pages + Convex prod) | ✅ live |
-| Rate-limit gate on the AI extract endpoint | ⏳ next (before AI is on in prod) |
-| Supplier match + approval + send (M2/M3) | ⏳ |
-| Inbound webhook + quote parse (M4) | ⏳ |
+## Deliberately left (scoping decisions, not oversights)
+- **Real email delivery** — sending is *simulated* (records + tracks the rendered RFQ). Swapping in
+  the Convex Resend component needs a Resend API key + a verified domain, and the seeded suppliers
+  are `.example` addresses that would bounce. The durable send/track/remind logic is real; only the
+  delivery call is stubbed.
+- **Inbound email webhook** — supplier replies are triggered via a "Simulate reply" box. In
+  production the same `ingestReply` action is the email provider's inbound webhook (a Convex HTTP action).
+- **M5 calc-engine handoff** — "ready to calculate" is a status; the actual export/contract to a
+  pricing engine is out of scope for this exercise.
+- **CP1252 (DA2000) encoding** — the parser assumes UTF-8. Legacy files need byte-level encoding
+  detection at the ingest layer.
+- **Finer curation + scale** — approval is per-supplier (not per-material); extraction is sequential
+  and queries are bounded with `.take()` rather than paginated. Fine for the demo; noted for scale.
+- **Deeper hardening** — observability + LLM cost caps, and Convex-function tests (`convex-test`),
+  are listed but not built.
+
+A fuller analysis is in `docs/` (production-readiness assessment) and the knowledge-base.
 
 ## Run it
 ```bash
 pnpm install
-pnpm test                                # parser unit tests
-pnpm run typecheck
-pnpm run parse -- test/fixtures/sample.x83   # eyeball a parse
+pnpm test                 # unit + rule tests (LLM evals are skipped without OPENAI_API_KEY)
+pnpm typecheck
+pnpm lint
+pnpm parse test/fixtures/electrical-tender.x83   # eyeball the parser
 ```
-Example output:
-```
-Phase X83 · GAEB 3.2 · € · Example Project
-6 positions:
-  01.01.001         1 Flat   Site Preparation
-  01.02.001      (TBD) m³     Excavation
-  01.02.002       600 m³     Filling
-  ...
-```
+Local full stack: `npx convex dev` (one terminal) + `pnpm dev` (another). The AI steps and Convex
+Auth need env keys on the deployment — see `docs/BUILDLOG.md`.
 
 ## Layout
 ```
-src/gaeb/parseX83.ts   # X83 (Angebotsaufforderung) → flat positions
-src/gaeb/types.ts      # Position, ParsedX83
-src/cli.ts             # npm run parse -- <file.x83>
-test/parseX83.test.ts  # against a real DA83/3.2 sample
-test/fixtures/sample.x83
-docs/BUILDLOG.md       # decisions, dated
+convex/                 # backend: schema, auth, ingest, extract, suppliers, outreach, quotes, rateLimit
+src/gaeb/               # X83 parser (deterministic) + types
+src/pdf/                # PDF text extraction (unpdf)
+src/ai/                 # Mastra agents: material-extractor, position-extractor, quote-parser (+ evals)
+src/match/              # rule-based supplier matching (pure, tested)
+src/email/              # RFQ template (pure, tested)
+src/routes/             # Dashboard, TenderDetail, Suppliers pages
+src/components/         # app shell, dropzone, ui primitives
+docs/BUILDLOG.md        # dated decisions
 ```
-
-## Next
-See `docs/BUILDLOG.md` and the build plan in the knowledge-base. The next slice (Convex schema
-+ file upload) needs a Convex deployment (`npx convex dev`, interactive login) and is intentionally
-not scaffolded until that account exists.
