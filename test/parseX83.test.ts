@@ -1,7 +1,17 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { parseX83 } from "../src/gaeb/parseX83.js";
+import { parseGaebNumber, parseX83 } from "../src/gaeb/parseX83.js";
+
+// Minimal X83 builder for the robustness tests.
+function x83(inner: string, dp = "83"): string {
+  return `<?xml version="1.0" encoding="utf-8"?>
+<GAEB xmlns="http://www.gaeb.de/GAEB_DA_XML/DA83/3.2">
+  <Award><DP>${dp}</DP><BoQ><BoQBody><Itemlist>${inner}</Itemlist></BoQBody></BoQ></Award>
+</GAEB>`;
+}
+const item = (rNo: string, qty: string) =>
+  `<Item RNoPart="${rNo}"><Qty>${qty}</Qty><QU>m</QU><Description><CompleteText><OutlineText><OutlTxt><TextOutlTxt>Kabel</TextOutlTxt></OutlTxt></OutlineText></CompleteText></Description></Item>`;
 
 const sample = readFileSync(
   fileURLToPath(new URL("./fixtures/sample.x83", import.meta.url)),
@@ -71,5 +81,53 @@ describe("parseX83", () => {
     for (const p of parsed.positions) {
       expect(p).not.toHaveProperty("unitPrice");
     }
+  });
+});
+
+describe("parseGaebNumber", () => {
+  it("parses plain and dot-decimal numbers", () => {
+    expect(parseGaebNumber("600")).toBe(600);
+    expect(parseGaebNumber("120.5")).toBe(120.5);
+    expect(parseGaebNumber("0")).toBe(0);
+  });
+  it("parses German comma decimals and dot thousands", () => {
+    expect(parseGaebNumber("1,5")).toBe(1.5);
+    expect(parseGaebNumber("1.234,56")).toBe(1234.56);
+  });
+  it("returns null for empty/garbage", () => {
+    expect(parseGaebNumber("")).toBeNull();
+    expect(parseGaebNumber(undefined)).toBeNull();
+    expect(parseGaebNumber("abc")).toBeNull();
+  });
+});
+
+describe("parseX83 robustness (fixed review bugs)", () => {
+  it("parses comma-decimal quantities instead of dropping them", () => {
+    const parsed = parseX83(x83(item("001", "1,5")));
+    expect(parsed.positions[0]?.qty).toBe(1.5);
+  });
+
+  it("throws on a non-83 exchange phase instead of parsing it as a tender", () => {
+    expect(() => parseX83(x83(item("001", "5"), "84"))).toThrow(/DP=84/);
+  });
+
+  it("collects positions across multiple <Award> blocks (no silent empty)", () => {
+    const two = `<?xml version="1.0"?>
+<GAEB xmlns="http://www.gaeb.de/GAEB_DA_XML/DA83/3.2">
+  <Award><DP>83</DP><BoQ><BoQBody><Itemlist>${item("001", "5")}</Itemlist></BoQBody></BoQ></Award>
+  <Award><DP>83</DP><BoQ><BoQBody><Itemlist>${item("002", "9")}</Itemlist></BoQBody></BoQ></Award>
+</GAEB>`;
+    expect(parseX83(two).positions).toHaveLength(2);
+  });
+
+  it("does not produce a trailing-dot OZ when RNoPart is missing", () => {
+    const noRNo = x83(
+      `<Item><Qty>5</Qty><QU>m</QU><Description><CompleteText><OutlineText><OutlTxt><TextOutlTxt>x</TextOutlTxt></OutlTxt></OutlineText></CompleteText></Description></Item>`,
+    );
+    expect(parseX83(noRNo).positions[0]?.oz).toBe("");
+  });
+
+  it("fails loudly on non-GAEB input", () => {
+    expect(() => parseX83("<html><body>not gaeb</body></html>")).toThrow(/GAEB/);
   });
 });
