@@ -9,6 +9,7 @@
     "node": ">=20"
   },
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks || true",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",

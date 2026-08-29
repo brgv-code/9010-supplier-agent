@@ -1,0 +1,8 @@
+#!/bin/sh
+# Blocks a push if lint / typecheck / tests fail (catches issues before CI).
+# Enabled via `core.hooksPath` (set by the package.json "prepare" script on install).
+set -e
+echo "pre-push: lint + typecheck + test"
+pnpm lint
+pnpm typecheck
+pnpm test
