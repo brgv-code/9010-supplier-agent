@@ -4,6 +4,15 @@ Dated decisions as the feature is built. Newest first.
 
 ---
 
+## 2026-08-29 - Production UI: TanStack Router, app shell, animated uploader, loading states
+Reworked the single-page UI into a real SaaS app on 9010's stack.
+- **TanStack Router** (their stack) with real pages: `/` Dashboard (upload + tenders grid), `/tenders/$tenderId` detail (positions/materials/outreach), `/suppliers` catalog.
+- **App shell**: sidebar nav (Tenders / Suppliers), brand, sign-out; content outlet.
+- **shadcn look**: white background, violet primary, card surfaces, focus rings.
+- **Animated uploader** (drag pulse + indeterminate parsing bar), **loading states** (full-page spinner for auth, skeleton rows/tables, in-button spinners), tender cards with hover, status pills.
+- Suppliers page: catalog table + add-supplier form + seed.
+- Green: lint/typecheck/test (14)/build. Respects `prefers-reduced-motion`.
+
 ## 2026-08-29 - M3: send + track RFQs with durable reminders (simulated send)
 - `outboundEmails` table. `sendOutreach` renders one RFQ per supplier (`renderRfq`, pure + tested) and records it as "sent". Requires the outreach to be approved (the M2 gate). **Simulated send** (sample suppliers are `.example`; swap in the Convex Resend component for real delivery).
 - Durable reminder via `ctx.scheduler.runAfter` -> flips "sent" to "reminded" if still unanswered (demo 20s; prod ~48h). Survives restarts, so it is genuine durable orchestration.
