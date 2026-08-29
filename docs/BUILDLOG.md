@@ -4,6 +4,15 @@ Dated decisions as the feature is built. Newest first.
 
 ---
 
+## 2026-08-29 - Parser hardening (the code-review's open bugs)
+Fixed the correctness debt the review flagged in the GAEB parser:
+- `parseTagValue: false` + a `parseGaebNumber` helper: German **comma-decimal** quantities ("1,5", "1.234,56") now parse correctly instead of silently becoming null.
+- **Multiple `<Award>`/`<BoQ>`** blocks are collected (no more silent 0 positions).
+- **Rejects a non-83 phase** (an X84/X81) with a clear error instead of parsing it as a tender.
+- Handles `CompleteText`/`OutlineText` as arrays; no trailing-dot OZ when `RNoPart` is missing; **fails loudly** on non-GAEB input.
+- Regression tests for every case (parser: 16 tests; `parseGaebNumber` unit-tested). All green.
+- Still open: CP1252 (DA2000) encoding detection at the ingest layer.
+
 ## 2026-08-29 - M4: inbound replies + quote parsing -> ready to calculate (loop closed)
 - `quotes` table. `quoteParser` (Mastra) parses a supplier's free-text reply into per-material prices, mapping by the 1-based index of the materials we asked about; comma-decimal aware. Gated eval.
 - `ingestReply` action (`"use node"`, rate-limited): fetches the materials asked of that supplier, parses the reply, stores quotes, marks the email "replied". `storeQuotes` flips the tender to **"ready_to_calculate"** once every material has a quote.
