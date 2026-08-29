@@ -8,11 +8,14 @@
  * @module
  */
 
+import type * as auth from "../auth.js";
 import type * as extract from "../extract.js";
 import type * as extractActions from "../extractActions.js";
+import type * as http from "../http.js";
 import type * as ingest from "../ingest.js";
 import type * as ingestActions from "../ingestActions.js";
 import type * as ingestPdfActions from "../ingestPdfActions.js";
+import type * as lib from "../lib.js";
 import type * as rateLimit from "../rateLimit.js";
 
 import type {
@@ -22,11 +25,14 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  auth: typeof auth;
   extract: typeof extract;
   extractActions: typeof extractActions;
+  http: typeof http;
   ingest: typeof ingest;
   ingestActions: typeof ingestActions;
   ingestPdfActions: typeof ingestPdfActions;
+  lib: typeof lib;
   rateLimit: typeof rateLimit;
 }>;
 

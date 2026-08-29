@@ -4,6 +4,13 @@ Dated decisions as the feature is built. Newest first.
 
 ---
 
+## 2026-08-29 - P0 auth: Convex Auth (email+password) + per-user isolation
+- `@convex-dev/auth` Password provider (self-contained, no external service). `authTables` in the schema; `convex/auth.ts`, `http.ts`, `auth.config.ts`.
+- Replaced the hardcoded `"dev"` tenant: every query/mutation/action derives the tenant from the signed-in user (`getAuthUserId` via `requireUserId`/`optionalUserId`). Read queries return `[]` when signed out; writes/actions throw; tender-scoped reads/writes verify ownership.
+- Frontend: `ConvexAuthProvider`, a `SignIn` (sign in / sign up) form, `Authenticated`/`Unauthenticated`/`AuthLoading` gating, and sign-out.
+- Verified lint/typecheck/test/build. **Runtime needs signing keys:** run `npx @convex-dev/auth` to set `JWT_PRIVATE_KEY`/`JWKS`/`SITE_URL` on the deployment(s), then deploy.
+- Note: pre-auth tenders (tenantId `"dev"`) are now orphaned; new users start with an empty list.
+
 ## 2026-08-28 - P0: rate-limit gate on the public AI endpoints
 The public `extractMaterialsForTender` and `ingestUploadedPdf` spend OpenAI on every call, so with no auth they need a cap.
 - Mounted `@convex-dev/rate-limiter`; a global `aiRequest` budget (40/hour) via `consumeAiBudget`, enforced in both AI actions before any OpenAI call (throws when spent).

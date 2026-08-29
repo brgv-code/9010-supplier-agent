@@ -1,9 +1,38 @@
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useAuthActions } from "@convex-dev/auth/react";
+import {
+  AuthLoading,
+  Authenticated,
+  Unauthenticated,
+  useAction,
+  useMutation,
+  useQuery,
+} from "convex/react";
 import { type ChangeEvent, type DragEvent, useState } from "react";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
+import SignIn from "./SignIn";
 
+// Gate the whole app on auth.
 export default function App() {
+  return (
+    <>
+      <AuthLoading>
+        <main className="wrap">
+          <p className="muted">Loading...</p>
+        </main>
+      </AuthLoading>
+      <Unauthenticated>
+        <SignIn />
+      </Unauthenticated>
+      <Authenticated>
+        <TenderViewer />
+      </Authenticated>
+    </>
+  );
+}
+
+function TenderViewer() {
+  const { signOut } = useAuthActions();
   const tenders = useQuery(api.ingest.listTenders); // undefined while loading
   const generateUploadUrl = useMutation(api.ingest.generateUploadUrl);
   const ingest = useAction(api.ingestActions.ingestUploadedX83);
@@ -85,11 +114,16 @@ export default function App() {
 
   return (
     <main className="wrap">
-      <header>
-        <h1>Tender viewer</h1>
-        <p className="sub">
-          Upload a GAEB X83 (parsed) or a PDF tender (AI-extracted), then extract material needs.
-        </p>
+      <header className="topbar">
+        <div>
+          <h1>Tender viewer</h1>
+          <p className="sub">
+            Upload a GAEB X83 (parsed) or a PDF tender (AI-extracted), then extract material needs.
+          </p>
+        </div>
+        <button type="button" className="linkbtn" onClick={() => void signOut()}>
+          Sign out
+        </button>
       </header>
 
       <div

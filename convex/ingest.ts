@@ -1,9 +1,7 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { internalMutation, mutation, query } from "./_generated/server";
-
-// TODO(M6): derive from ctx.auth.getUserIdentity().tokenIdentifier instead of a constant.
-const DEV_TENANT = "dev";
+import { optionalUserId, requireUserId } from "./lib";
 
 const positionValidator = v.object({
   oz: v.string(),
@@ -17,14 +15,17 @@ const positionValidator = v.object({
   confidence: v.optional(v.number()),
 });
 
-// Client asks for a signed URL, POSTs the raw .x83 to it, then calls the ingest action.
+// Client asks for a signed URL, POSTs the raw file to it, then calls the ingest action.
 export const generateUploadUrl = mutation({
   args: {},
-  handler: async (ctx) => await ctx.storage.generateUploadUrl(),
+  handler: async (ctx) => {
+    await requireUserId(ctx); // must be signed in to upload
+    return await ctx.storage.generateUploadUrl();
+  },
 });
 
-// Commit a parsed tender + its positions in one transaction. Internal: only the ingest
-// action calls it. Dedupes on the stored file's sha256 so re-uploading the same file is a no-op.
+// Commit a parsed tender + its positions in one transaction, scoped to the signed-in user.
+// Internal: only the ingest actions call it. Dedupes on the stored file's sha256.
 export const insertParsed = internalMutation({
   args: {
     fileId: v.id("_storage"),
@@ -36,19 +37,18 @@ export const insertParsed = internalMutation({
     positions: v.array(positionValidator),
   },
   handler: async (ctx, args): Promise<Id<"tenders">> => {
+    const tenantId = await requireUserId(ctx);
     const meta = await ctx.db.system.get("_storage", args.fileId);
     const sha256 = meta?.sha256 ?? "";
 
     const existing = await ctx.db
       .query("tenders")
-      .withIndex("by_tenant_and_sha256", (q) =>
-        q.eq("tenantId", DEV_TENANT).eq("x83Sha256", sha256),
-      )
+      .withIndex("by_tenant_and_sha256", (q) => q.eq("tenantId", tenantId).eq("x83Sha256", sha256))
       .unique();
     if (existing) return existing._id;
 
     const tenderId = await ctx.db.insert("tenders", {
-      tenantId: DEV_TENANT,
+      tenantId,
       source: args.source,
       projectName: args.projectName,
       phase: args.phase,
@@ -68,20 +68,27 @@ export const insertParsed = internalMutation({
 
 export const listTenders = query({
   args: {},
-  handler: async (ctx) =>
-    await ctx.db
+  handler: async (ctx) => {
+    const userId = await optionalUserId(ctx);
+    if (!userId) return [];
+    return await ctx.db
       .query("tenders")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", DEV_TENANT))
+      .withIndex("by_tenant", (q) => q.eq("tenantId", userId))
       .order("desc")
-      .take(100),
+      .take(100);
+  },
 });
 
 export const listPositions = query({
   args: { tenderId: v.id("tenders") },
-  // bounded for now; paginate in a later slice (a tender can have thousands of positions)
-  handler: async (ctx, args) =>
-    await ctx.db
+  handler: async (ctx, args) => {
+    const userId = await optionalUserId(ctx);
+    if (!userId) return [];
+    const tender = await ctx.db.get(args.tenderId);
+    if (!tender || tender.tenantId !== userId) return []; // not yours
+    return await ctx.db
       .query("positions")
       .withIndex("by_tender", (q) => q.eq("tenderId", args.tenderId))
-      .take(500),
+      .take(500);
+  },
 });

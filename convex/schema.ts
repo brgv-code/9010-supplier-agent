@@ -1,9 +1,11 @@
+import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
-// M0 data model. tenantId is present from day one (enforcement/auth comes in M6);
-// positions live in their own table (a tender can have thousands, so never an array field).
+// tenantId = the signed-in user's id (Convex Auth). Positions live in their own table
+// (a tender can have thousands, so never an array field).
 export default defineSchema({
+  ...authTables,
   tenders: defineTable({
     tenantId: v.string(),
     source: v.optional(v.string()), // "gaeb" | "pdf" (optional so pre-existing rows validate)

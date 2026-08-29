@@ -3,6 +3,7 @@ import { parseX83 } from "../src/gaeb/parseX83.js";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { action } from "./_generated/server";
+import { requireUserId } from "./lib";
 
 // Reads the uploaded .x83 from storage, parses it, and commits via an internal mutation.
 // Runs in the default Convex runtime; fast-xml-parser is pure JS. If it ever errors on a
@@ -10,6 +11,7 @@ import { action } from "./_generated/server";
 export const ingestUploadedX83 = action({
   args: { fileId: v.id("_storage") },
   handler: async (ctx, args): Promise<{ tenderId: Id<"tenders">; positionCount: number }> => {
+    await requireUserId(ctx); // must be signed in
     const blob = await ctx.storage.get(args.fileId);
     if (!blob) throw new Error("uploaded file not found in storage");
     const xml = await blob.text();

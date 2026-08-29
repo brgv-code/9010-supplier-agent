@@ -6,12 +6,14 @@ import { extractPdfText } from "../src/pdf/extractPdfText.js";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { action } from "./_generated/server";
+import { requireUserId } from "./lib";
 
 // PDF tender ingest: PDF -> text (deterministic) -> positions (LLM) -> store.
 // Node runtime (unpdf + Mastra). Needs OPENAI_API_KEY on the deployment.
 export const ingestUploadedPdf = action({
   args: { fileId: v.id("_storage") },
   handler: async (ctx, args): Promise<{ tenderId: Id<"tenders">; positionCount: number }> => {
+    await requireUserId(ctx); // must be signed in
     const blob = await ctx.storage.get(args.fileId);
     if (!blob) throw new Error("uploaded file not found in storage");
     if (blob.size > 10 * 1024 * 1024) throw new Error("PDF too large (max 10MB)");

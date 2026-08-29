@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery, query } from "./_generated/server";
+import { optionalUserId, requireUserId } from "./lib";
 
 const materialReqValidator = v.object({
   positionId: v.id("positions"),
@@ -10,14 +11,18 @@ const materialReqValidator = v.object({
   confidence: v.number(),
 });
 
-// Feeds the extraction action. Bounded; a real thousands-position tender would paginate.
+// Feeds the extraction action. Verifies the tender belongs to the signed-in user.
 export const positionsForTender = internalQuery({
   args: { tenderId: v.id("tenders") },
-  handler: async (ctx, args) =>
-    await ctx.db
+  handler: async (ctx, args) => {
+    const userId = await requireUserId(ctx);
+    const tender = await ctx.db.get(args.tenderId);
+    if (!tender || tender.tenantId !== userId) throw new Error("tender not found");
+    return await ctx.db
       .query("positions")
       .withIndex("by_tender", (q) => q.eq("tenderId", args.tenderId))
-      .take(2000),
+      .take(2000);
+  },
 });
 
 // Idempotent: clears prior material reqs for the tender, then writes the new set.
@@ -25,6 +30,10 @@ export const positionsForTender = internalQuery({
 export const replaceMaterialReqs = internalMutation({
   args: { tenderId: v.id("tenders"), reqs: v.array(materialReqValidator) },
   handler: async (ctx, args) => {
+    const userId = await requireUserId(ctx);
+    const tender = await ctx.db.get(args.tenderId);
+    if (!tender || tender.tenantId !== userId) throw new Error("tender not found");
+
     const existing = await ctx.db
       .query("materialReqs")
       .withIndex("by_tender", (q) => q.eq("tenderId", args.tenderId))
@@ -39,9 +48,14 @@ export const replaceMaterialReqs = internalMutation({
 
 export const listMaterialReqs = query({
   args: { tenderId: v.id("tenders") },
-  handler: async (ctx, args) =>
-    await ctx.db
+  handler: async (ctx, args) => {
+    const userId = await optionalUserId(ctx);
+    if (!userId) return [];
+    const tender = await ctx.db.get(args.tenderId);
+    if (!tender || tender.tenantId !== userId) return [];
+    return await ctx.db
       .query("materialReqs")
       .withIndex("by_tender", (q) => q.eq("tenderId", args.tenderId))
-      .take(2000),
+      .take(2000);
+  },
 });

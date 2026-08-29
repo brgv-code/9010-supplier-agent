@@ -5,6 +5,7 @@ import { extractPositionMaterials } from "../src/ai/materialExtractor.js";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { action } from "./_generated/server";
+import { requireUserId } from "./lib";
 
 type ReqRow = {
   positionId: Id<"positions">;
@@ -21,6 +22,7 @@ type ReqRow = {
 export const extractMaterialsForTender = action({
   args: { tenderId: v.id("tenders") },
   handler: async (ctx, args): Promise<{ positions: number; materials: number }> => {
+    await requireUserId(ctx); // must be signed in
     // Gate OpenAI spend on this public endpoint (throws if the hourly budget is spent).
     await ctx.runMutation(internal.rateLimit.consumeAiBudget, {});
 
