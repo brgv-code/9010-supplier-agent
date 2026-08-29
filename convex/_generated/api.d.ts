@@ -17,6 +17,7 @@ import type * as ingestActions from "../ingestActions.js";
 import type * as ingestPdfActions from "../ingestPdfActions.js";
 import type * as lib from "../lib.js";
 import type * as rateLimit from "../rateLimit.js";
+import type * as suppliers from "../suppliers.js";
 
 import type {
   ApiFromModules,
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   ingestPdfActions: typeof ingestPdfActions;
   lib: typeof lib;
   rateLimit: typeof rateLimit;
+  suppliers: typeof suppliers;
 }>;
 
 /**

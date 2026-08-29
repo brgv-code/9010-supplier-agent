@@ -38,6 +38,9 @@ function TenderViewer() {
   const ingest = useAction(api.ingestActions.ingestUploadedX83);
   const ingestPdf = useAction(api.ingestPdfActions.ingestUploadedPdf);
   const extract = useAction(api.extractActions.extractMaterialsForTender);
+  const seedSuppliers = useMutation(api.suppliers.seedSuppliers);
+  const matchSuppliers = useMutation(api.suppliers.matchSuppliers);
+  const approveOutreach = useMutation(api.suppliers.approveOutreach);
 
   const [selected, setSelected] = useState<Id<"tenders"> | null>(null);
   const [busy, setBusy] = useState(false);
@@ -45,12 +48,15 @@ function TenderViewer() {
   const [dragOver, setDragOver] = useState(false);
   const [filter, setFilter] = useState("");
   const [extracting, setExtracting] = useState(false);
+  const [outreachBusy, setOutreachBusy] = useState(false);
 
   const positions = useQuery(api.ingest.listPositions, selected ? { tenderId: selected } : "skip");
   const materials = useQuery(
     api.extract.listMaterialReqs,
     selected ? { tenderId: selected } : "skip",
   );
+  const suppliers = useQuery(api.suppliers.listSuppliers);
+  const outreach = useQuery(api.suppliers.listOutreach, selected ? { tenderId: selected } : "skip");
   const selectedTender = tenders?.find((t) => t._id === selected) ?? null;
 
   async function ingestFile(file: File) {
@@ -87,6 +93,33 @@ function TenderViewer() {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setExtracting(false);
+    }
+  }
+
+  async function onMatch() {
+    if (!selected) return;
+    setOutreachBusy(true);
+    setError(null);
+    try {
+      if (!suppliers || suppliers.length === 0) await seedSuppliers({});
+      await matchSuppliers({ tenderId: selected });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setOutreachBusy(false);
+    }
+  }
+
+  async function onApprove() {
+    if (!selected) return;
+    setOutreachBusy(true);
+    setError(null);
+    try {
+      await approveOutreach({ tenderId: selected });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setOutreachBusy(false);
     }
   }
 
@@ -266,6 +299,58 @@ function TenderViewer() {
                   <p className="muted">
                     Rows under 60% confidence (highlighted) are the ones a human would review.
                   </p>
+                </div>
+              )}
+
+              {materials && materials.length > 0 && (
+                <div className="materials">
+                  <div className="summary">
+                    <h3>Supplier outreach</h3>
+                    <div className="actions">
+                      <button
+                        type="button"
+                        className="btn"
+                        onClick={onMatch}
+                        disabled={outreachBusy}
+                      >
+                        {outreachBusy ? "..." : "Match suppliers"}
+                      </button>
+                      {outreach && outreach.length > 0 && (
+                        <button
+                          type="button"
+                          className="btn"
+                          onClick={onApprove}
+                          disabled={outreachBusy || selectedTender.status === "outreach_approved"}
+                        >
+                          {selectedTender.status === "outreach_approved"
+                            ? "Approved ✓"
+                            : `Approve outreach (${outreach.length})`}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {outreach && outreach.length === 0 && (
+                    <p className="muted">
+                      No outreach yet. "Match suppliers" seeds a few sample suppliers (first time)
+                      and pairs them to the materials.
+                    </p>
+                  )}
+                  {outreach?.map((g) => (
+                    <div key={g.supplierId} className="rfq">
+                      <div>
+                        <strong>{g.supplier}</strong>{" "}
+                        <span className="meta">
+                          {g.email} · {g.materials.length} materials · {g.status}
+                        </span>
+                      </div>
+                      <div className="muted">{g.materials.join(", ")}</div>
+                    </div>
+                  ))}
+                  {outreach && outreach.length > 0 && (
+                    <p className="muted">
+                      Nothing is emailed yet: approval is the human gate before M3 (send).
+                    </p>
+                  )}
                 </div>
               )}
             </>

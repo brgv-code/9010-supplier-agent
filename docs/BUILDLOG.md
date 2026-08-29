@@ -4,6 +4,14 @@ Dated decisions as the feature is built. Newest first.
 
 ---
 
+## 2026-08-29 - M2: supplier catalog + rule-based matching + approval gate
+First piece of the actual outreach agent.
+- `suppliers` table (per user) + `seedSuppliers` (sample electrical suppliers), `addSupplier`, `listSuppliers`.
+- `src/match/proposeOutreach.ts`: pure, unit-tested token-overlap category matching, ranked by reliability. This is the **rule** step (deterministic, no LLM), the counterpart to the model extraction.
+- `matchSuppliers` mutation pairs materials -> suppliers as `rfqItems` (status "proposed", idempotent). `approveOutreach` is the **human gate** -> "approved". Nothing is emailed yet (that is M3).
+- UI: an Outreach section (Match suppliers, a draft grouped by supplier, Approve).
+- All per-user scoped with ownership checks. Green: lint/typecheck/test (12)/build. Needs `convex deploy` + frontend redeploy for prod.
+
 ## 2026-08-29 - P0 auth: Convex Auth (email+password) + per-user isolation
 - `@convex-dev/auth` Password provider (self-contained, no external service). `authTables` in the schema; `convex/auth.ts`, `http.ts`, `auth.config.ts`.
 - Replaced the hardcoded `"dev"` tenant: every query/mutation/action derives the tenant from the signed-in user (`getAuthUserId` via `requireUserId`/`optionalUserId`). Read queries return `[]` when signed out; writes/actions throw; tender-scoped reads/writes verify ownership.

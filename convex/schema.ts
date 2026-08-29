@@ -45,4 +45,22 @@ export default defineSchema({
   })
     .index("by_tender", ["tenderId"])
     .index("by_position", ["positionId"]),
+
+  // M2: the supplier catalog (per user) and the proposed/approved outreach.
+  suppliers: defineTable({
+    tenantId: v.string(),
+    name: v.string(),
+    email: v.string(),
+    categories: v.array(v.string()),
+    region: v.string(),
+    reliability: v.number(), // 0..1
+  }).index("by_tenant", ["tenantId"]),
+
+  rfqItems: defineTable({
+    tenantId: v.string(),
+    tenderId: v.id("tenders"),
+    supplierId: v.id("suppliers"),
+    materialReqId: v.id("materialReqs"),
+    status: v.string(), // "proposed" | "approved"
+  }).index("by_tender", ["tenderId"]),
 });
