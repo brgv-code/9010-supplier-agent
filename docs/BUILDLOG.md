@@ -4,6 +4,12 @@ Dated decisions as the feature is built. Newest first.
 
 ---
 
+## 2026-08-29 - M3: send + track RFQs with durable reminders (simulated send)
+- `outboundEmails` table. `sendOutreach` renders one RFQ per supplier (`renderRfq`, pure + tested) and records it as "sent". Requires the outreach to be approved (the M2 gate). **Simulated send** (sample suppliers are `.example`; swap in the Convex Resend component for real delivery).
+- Durable reminder via `ctx.scheduler.runAfter` -> flips "sent" to "reminded" if still unanswered (demo 20s; prod ~48h). Survives restarts, so it is genuine durable orchestration.
+- UI: a "Send RFQs" button (after Approve) and a reactive tracking board (supplier, status). Inbound replies + quote parsing are M4.
+- Green: lint/typecheck/test (14)/build.
+
 ## 2026-08-29 - M2: supplier catalog + rule-based matching + approval gate
 First piece of the actual outreach agent.
 - `suppliers` table (per user) + `seedSuppliers` (sample electrical suppliers), `addSupplier`, `listSuppliers`.

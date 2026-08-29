@@ -63,4 +63,18 @@ export default defineSchema({
     materialReqId: v.id("materialReqs"),
     status: v.string(), // "proposed" | "approved"
   }).index("by_tender", ["tenderId"]),
+
+  // M3: one rendered RFQ email per supplier, with tracked status. Sending is simulated
+  // for now (swap in the Convex Resend component for real delivery).
+  outboundEmails: defineTable({
+    tenantId: v.string(),
+    tenderId: v.id("tenders"),
+    supplierId: v.id("suppliers"),
+    supplierName: v.string(),
+    email: v.string(),
+    subject: v.string(),
+    body: v.string(),
+    status: v.string(), // "sent" | "reminded" | "replied" (M4) | "bounced"
+    sentAt: v.number(),
+  }).index("by_tender", ["tenderId"]),
 });

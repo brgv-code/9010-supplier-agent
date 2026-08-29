@@ -41,6 +41,7 @@ function TenderViewer() {
   const seedSuppliers = useMutation(api.suppliers.seedSuppliers);
   const matchSuppliers = useMutation(api.suppliers.matchSuppliers);
   const approveOutreach = useMutation(api.suppliers.approveOutreach);
+  const sendOutreach = useMutation(api.outreach.sendOutreach);
 
   const [selected, setSelected] = useState<Id<"tenders"> | null>(null);
   const [busy, setBusy] = useState(false);
@@ -57,6 +58,10 @@ function TenderViewer() {
   );
   const suppliers = useQuery(api.suppliers.listSuppliers);
   const outreach = useQuery(api.suppliers.listOutreach, selected ? { tenderId: selected } : "skip");
+  const emails = useQuery(
+    api.outreach.listOutboundEmails,
+    selected ? { tenderId: selected } : "skip",
+  );
   const selectedTender = tenders?.find((t) => t._id === selected) ?? null;
 
   async function ingestFile(file: File) {
@@ -116,6 +121,19 @@ function TenderViewer() {
     setError(null);
     try {
       await approveOutreach({ tenderId: selected });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setOutreachBusy(false);
+    }
+  }
+
+  async function onSend() {
+    if (!selected) return;
+    setOutreachBusy(true);
+    setError(null);
+    try {
+      await sendOutreach({ tenderId: selected });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -316,16 +334,36 @@ function TenderViewer() {
                         {outreachBusy ? "..." : "Match suppliers"}
                       </button>
                       {outreach && outreach.length > 0 && (
-                        <button
-                          type="button"
-                          className="btn"
-                          onClick={onApprove}
-                          disabled={outreachBusy || selectedTender.status === "outreach_approved"}
-                        >
-                          {selectedTender.status === "outreach_approved"
-                            ? "Approved ✓"
-                            : `Approve outreach (${outreach.length})`}
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            className="btn"
+                            onClick={onApprove}
+                            disabled={
+                              outreachBusy ||
+                              selectedTender.status === "outreach_approved" ||
+                              selectedTender.status === "outreach_sent"
+                            }
+                          >
+                            {selectedTender.status === "outreach_approved" ||
+                            selectedTender.status === "outreach_sent"
+                              ? "Approved ✓"
+                              : `Approve (${outreach.length})`}
+                          </button>
+                          {(selectedTender.status === "outreach_approved" ||
+                            selectedTender.status === "outreach_sent") && (
+                            <button
+                              type="button"
+                              className="btn"
+                              onClick={onSend}
+                              disabled={outreachBusy || selectedTender.status === "outreach_sent"}
+                            >
+                              {selectedTender.status === "outreach_sent"
+                                ? "Sent ✓"
+                                : `Send RFQs (${outreach.length})`}
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
@@ -346,10 +384,35 @@ function TenderViewer() {
                       <div className="muted">{g.materials.join(", ")}</div>
                     </div>
                   ))}
-                  {outreach && outreach.length > 0 && (
+                  {outreach && outreach.length > 0 && (!emails || emails.length === 0) && (
                     <p className="muted">
-                      Nothing is emailed yet: approval is the human gate before M3 (send).
+                      Approve, then Send. (Simulated send: emails are recorded and tracked, not
+                      actually delivered.)
                     </p>
+                  )}
+
+                  {emails && emails.length > 0 && (
+                    <div className="emails">
+                      <h4>Sent RFQs ({emails.length})</h4>
+                      {emails.map((e) => (
+                        <div key={e._id} className="rfq">
+                          <div>
+                            <strong>{e.supplierName}</strong>{" "}
+                            <span className="meta">
+                              {e.email} ·{" "}
+                              <span className={e.status === "reminded" ? "low" : ""}>
+                                {e.status}
+                              </span>
+                            </span>
+                          </div>
+                          <div className="meta">{e.subject}</div>
+                        </div>
+                      ))}
+                      <p className="muted">
+                        Status flips "sent" → "reminded" after the (demo) timeout via Convex's
+                        durable scheduler. Inbound replies + quote parsing are M4.
+                      </p>
+                    </div>
                   )}
                 </div>
               )}
