@@ -159,6 +159,30 @@ export const listOutreach = query({
   },
 });
 
+// Human curation: drop a supplier from the proposed outreach before sending.
+export const removeOutreachSupplier = mutation({
+  args: { tenderId: v.id("tenders"), supplierId: v.id("suppliers") },
+  handler: async (ctx, args) => {
+    const tenantId = await requireUserId(ctx);
+    const tender = await ctx.db.get(args.tenderId);
+    if (!tender || tender.tenantId !== tenantId) throw new Error("tender not found");
+    if (tender.status === "outreach_sent") throw new Error("already sent");
+
+    const items = await ctx.db
+      .query("rfqItems")
+      .withIndex("by_tender", (q) => q.eq("tenderId", args.tenderId))
+      .take(4000);
+    let removed = 0;
+    for (const it of items) {
+      if (it.supplierId === args.supplierId) {
+        await ctx.db.delete(it._id);
+        removed++;
+      }
+    }
+    return { removed };
+  },
+});
+
 export const approveOutreach = mutation({
   args: { tenderId: v.id("tenders") },
   handler: async (ctx, args) => {

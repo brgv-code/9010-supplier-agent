@@ -41,6 +41,7 @@ function TenderViewer() {
   const seedSuppliers = useMutation(api.suppliers.seedSuppliers);
   const matchSuppliers = useMutation(api.suppliers.matchSuppliers);
   const approveOutreach = useMutation(api.suppliers.approveOutreach);
+  const removeSupplier = useMutation(api.suppliers.removeOutreachSupplier);
   const sendOutreach = useMutation(api.outreach.sendOutreach);
 
   const [selected, setSelected] = useState<Id<"tenders"> | null>(null);
@@ -138,6 +139,16 @@ function TenderViewer() {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setOutreachBusy(false);
+    }
+  }
+
+  async function onRemoveSupplier(supplierId: Id<"suppliers">) {
+    if (!selected) return;
+    setError(null);
+    try {
+      await removeSupplier({ tenderId: selected, supplierId });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -375,19 +386,31 @@ function TenderViewer() {
                   )}
                   {outreach?.map((g) => (
                     <div key={g.supplierId} className="rfq">
-                      <div>
-                        <strong>{g.supplier}</strong>{" "}
-                        <span className="meta">
-                          {g.email} · {g.materials.length} materials · {g.status}
+                      <div className="rfqhead">
+                        <span>
+                          <strong>{g.supplier}</strong>{" "}
+                          <span className="meta">
+                            {g.email} · {g.materials.length} materials · {g.status}
+                          </span>
                         </span>
+                        {selectedTender.status !== "outreach_sent" && (
+                          <button
+                            type="button"
+                            className="linkbtn"
+                            onClick={() => void onRemoveSupplier(g.supplierId as Id<"suppliers">)}
+                          >
+                            Remove
+                          </button>
+                        )}
                       </div>
                       <div className="muted">{g.materials.join(", ")}</div>
                     </div>
                   ))}
                   {outreach && outreach.length > 0 && (!emails || emails.length === 0) && (
                     <p className="muted">
-                      Approve, then Send. (Simulated send: emails are recorded and tracked, not
-                      actually delivered.)
+                      Review the proposed suppliers and <strong>Remove</strong> any you don't want
+                      to contact, then Approve and Send. (Simulated send: emails are recorded and
+                      tracked, not actually delivered.)
                     </p>
                   )}
 

@@ -256,3 +256,9 @@ td.low {
   margin-bottom: 0.5rem;
   background: var(--surface);
 }
+.rfqhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
