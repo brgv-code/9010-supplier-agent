@@ -122,7 +122,7 @@ describe("parseX83 robustness (fixed review bugs)", () => {
 
   it("does not produce a trailing-dot OZ when RNoPart is missing", () => {
     const noRNo = x83(
-      `<Item><Qty>5</Qty><QU>m</QU><Description><CompleteText><OutlineText><OutlTxt><TextOutlTxt>x</TextOutlTxt></OutlTxt></OutlineText></CompleteText></Description></Item>`,
+      "<Item><Qty>5</Qty><QU>m</QU><Description><CompleteText><OutlineText><OutlTxt><TextOutlTxt>x</TextOutlTxt></OutlTxt></OutlineText></CompleteText></Description></Item>",
     );
     expect(parseX83(noRNo).positions[0]?.oz).toBe("");
   });
