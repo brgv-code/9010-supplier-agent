@@ -681,3 +681,45 @@ a.tendercard:hover {
     animation: none;
   }
 }
+
+/* ---- M4: replies / quotes ---- */
+.rfqhead-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.pill-ok {
+  background: #dcfce7;
+  color: #15803d;
+}
+.banner-ok {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  border-radius: var(--radius);
+  padding: 0.7rem 0.9rem;
+  font-weight: 550;
+  font-size: 0.85rem;
+}
+.replybox {
+  margin-top: 0.6rem;
+}
+.replybox textarea {
+  width: 100%;
+  border: 1px solid var(--input);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.7rem;
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  resize: vertical;
+  color: inherit;
+  background: var(--card);
+}
+.replybox textarea:focus-visible {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+.replybox .actions {
+  margin-top: 0.5rem;
+}

@@ -4,6 +4,15 @@ Dated decisions as the feature is built. Newest first.
 
 ---
 
+## 2026-08-29 - M4: inbound replies + quote parsing -> ready to calculate (loop closed)
+- `quotes` table. `quoteParser` (Mastra) parses a supplier's free-text reply into per-material prices, mapping by the 1-based index of the materials we asked about; comma-decimal aware. Gated eval.
+- `ingestReply` action (`"use node"`, rate-limited): fetches the materials asked of that supplier, parses the reply, stores quotes, marks the email "replied". `storeQuotes` flips the tender to **"ready_to_calculate"** once every material has a quote.
+- In production this action is the inbound-email webhook (Convex HTTP action); the demo triggers it via a "Simulate reply" box (prefilled sample) on each sent RFQ.
+- UI: reply box + quotes table (unit price / MOQ / lead / confidence, low highlighted) + a "ready to calculate" banner + a green "replied" pill.
+- Green: lint/typecheck/test (14 + gated evals)/build.
+
+**The full agent loop now works:** upload -> extract (AI) -> match (rule) -> approve (human) -> send -> reply -> parse quotes (AI) -> ready to calculate.
+
 ## 2026-08-29 - Production UI: TanStack Router, app shell, animated uploader, loading states
 Reworked the single-page UI into a real SaaS app on 9010's stack.
 - **TanStack Router** (their stack) with real pages: `/` Dashboard (upload + tenders grid), `/tenders/$tenderId` detail (positions/materials/outreach), `/suppliers` catalog.

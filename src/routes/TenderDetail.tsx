@@ -5,6 +5,15 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { Skeleton, Spinner } from "../components/ui";
 
+const SAMPLE_REPLY = [
+  "Sehr geehrte Damen und Herren,",
+  "gerne bieten wir Ihnen an:",
+  "Position 1: 4,85 EUR pro Einheit, Mindestmenge 100, Lieferzeit 5 Tage",
+  "Position 2: 3,20 EUR pro Einheit, Lieferzeit 7 Tage",
+  "Position 3: 12,50 EUR pro Einheit",
+  "Mit freundlichen Grüßen",
+].join("\n");
+
 export default function TenderDetail() {
   const { tenderId } = useParams({ from: "/tenders/$tenderId" });
   const id = tenderId as Id<"tenders">;
@@ -23,11 +32,15 @@ export default function TenderDetail() {
   const approveOutreach = useMutation(api.suppliers.approveOutreach);
   const removeSupplier = useMutation(api.suppliers.removeOutreachSupplier);
   const sendOutreach = useMutation(api.outreach.sendOutreach);
+  const ingestReply = useAction(api.quoteActions.ingestReply);
+  const quotes = useQuery(api.quotes.listQuotes, { tenderId: id });
 
   const [filter, setFilter] = useState("");
   const [extracting, setExtracting] = useState(false);
   const [outreachBusy, setOutreachBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [replyFor, setReplyFor] = useState<Id<"outboundEmails"> | null>(null);
+  const [replyText, setReplyText] = useState("");
 
   async function guard(fn: () => Promise<unknown>, setter: (b: boolean) => void) {
     setter(true);
@@ -51,6 +64,20 @@ export default function TenderDetail() {
   const onSend = () => guard(() => sendOutreach({ tenderId: id }), setOutreachBusy);
   const onRemove = (supplierId: Id<"suppliers">) =>
     guard(() => removeSupplier({ tenderId: id, supplierId }), setOutreachBusy);
+
+  function openReply(emailId: Id<"outboundEmails">) {
+    setReplyFor(emailId);
+    setReplyText(SAMPLE_REPLY);
+  }
+  const onReply = () => {
+    const emailId = replyFor;
+    if (!emailId) return;
+    return guard(async () => {
+      await ingestReply({ emailId, replyText });
+      setReplyFor(null);
+      setReplyText("");
+    }, setOutreachBusy);
+  };
 
   const q = filter.trim().toLowerCase();
   const allPositions = positions ?? [];
@@ -97,6 +124,9 @@ export default function TenderDetail() {
         </button>
       </div>
       {error && <p className="error">{error}</p>}
+      {tender?.status === "ready_to_calculate" && (
+        <div className="banner-ok">✓ Every material has a quote — ready to calculate the bid.</div>
+      )}
 
       {/* Positions */}
       <section className="card">
@@ -263,19 +293,98 @@ export default function TenderDetail() {
                     <span>
                       <strong>{e.supplierName}</strong> <span className="meta">{e.email}</span>
                     </span>
-                    <span className={`pill ${e.status === "reminded" ? "pill-warn" : ""}`}>
-                      {e.status}
+                    <span className="rfqhead-right">
+                      <span
+                        className={`pill ${
+                          e.status === "replied"
+                            ? "pill-ok"
+                            : e.status === "reminded"
+                              ? "pill-warn"
+                              : ""
+                        }`}
+                      >
+                        {e.status}
+                      </span>
+                      {e.status !== "replied" && replyFor !== e._id && (
+                        <button type="button" className="linkbtn" onClick={() => openReply(e._id)}>
+                          Simulate reply
+                        </button>
+                      )}
                     </span>
                   </div>
                   <div className="meta">{e.subject}</div>
+                  {replyFor === e._id && (
+                    <div className="replybox">
+                      <textarea
+                        value={replyText}
+                        onChange={(ev) => setReplyText(ev.target.value)}
+                        rows={6}
+                      />
+                      <div className="actions">
+                        <button
+                          type="button"
+                          className="btn"
+                          onClick={onReply}
+                          disabled={outreachBusy}
+                        >
+                          {outreachBusy ? <Spinner /> : "Parse reply (AI)"}
+                        </button>
+                        <button type="button" className="linkbtn" onClick={() => setReplyFor(null)}>
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
               <p className="muted">
-                Status flips "sent" → "reminded" after the (demo) timeout via Convex's durable
-                scheduler. Inbound replies + quote parsing are M4.
+                Status flips "sent" → "reminded" via the durable scheduler. "Simulate reply" runs
+                the quote-parser (in prod this is the inbound-email webhook).
               </p>
             </div>
           )}
+        </section>
+      )}
+
+      {/* Quotes */}
+      {quotes && quotes.length > 0 && (
+        <section className="card">
+          <div className="card-head">
+            <h2>Quotes ({quotes.length})</h2>
+            {tender?.status === "ready_to_calculate" && (
+              <span className="pill pill-ok">ready to calculate</span>
+            )}
+          </div>
+          <div className="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Supplier</th>
+                  <th>Material</th>
+                  <th className="num">Unit price</th>
+                  <th className="num">MOQ</th>
+                  <th className="num">Lead</th>
+                  <th className="num">Conf</th>
+                </tr>
+              </thead>
+              <tbody>
+                {quotes.map((qt) => (
+                  <tr key={qt._id}>
+                    <td>{qt.supplier}</td>
+                    <td>{qt.material}</td>
+                    <td className="num">{qt.unitPrice.toFixed(2)}</td>
+                    <td className="num">{qt.moq ?? "-"}</td>
+                    <td className="num">
+                      {qt.leadTimeDays === null ? "-" : `${qt.leadTimeDays}d`}
+                    </td>
+                    <td className={`num ${qt.confidence < 0.6 ? "low" : ""}`}>
+                      {Math.round(qt.confidence * 100)}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
     </div>

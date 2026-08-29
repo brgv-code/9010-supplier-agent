@@ -74,7 +74,21 @@ export default defineSchema({
     email: v.string(),
     subject: v.string(),
     body: v.string(),
-    status: v.string(), // "sent" | "reminded" | "replied" (M4) | "bounced"
+    status: v.string(), // "sent" | "reminded" | "replied" | "bounced"
     sentAt: v.number(),
   }).index("by_tender", ["tenderId"]),
+
+  // M4: quotes parsed from a supplier reply, one row per (supplier, material).
+  quotes: defineTable({
+    tenantId: v.string(),
+    tenderId: v.id("tenders"),
+    supplierId: v.id("suppliers"),
+    materialReqId: v.id("materialReqs"),
+    unitPrice: v.number(),
+    moq: v.union(v.number(), v.null()),
+    leadTimeDays: v.union(v.number(), v.null()),
+    confidence: v.number(),
+  })
+    .index("by_tender", ["tenderId"])
+    .index("by_material", ["materialReqId"]),
 });

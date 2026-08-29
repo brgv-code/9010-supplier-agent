@@ -17,6 +17,8 @@ import type * as ingestActions from "../ingestActions.js";
 import type * as ingestPdfActions from "../ingestPdfActions.js";
 import type * as lib from "../lib.js";
 import type * as outreach from "../outreach.js";
+import type * as quoteActions from "../quoteActions.js";
+import type * as quotes from "../quotes.js";
 import type * as rateLimit from "../rateLimit.js";
 import type * as suppliers from "../suppliers.js";
 
@@ -36,6 +38,8 @@ declare const fullApi: ApiFromModules<{
   ingestPdfActions: typeof ingestPdfActions;
   lib: typeof lib;
   outreach: typeof outreach;
+  quoteActions: typeof quoteActions;
+  quotes: typeof quotes;
   rateLimit: typeof rateLimit;
   suppliers: typeof suppliers;
 }>;
